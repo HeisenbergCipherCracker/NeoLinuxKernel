@@ -7,6 +7,7 @@
 #define PIC2 0xA0  /* IO base address for slave PIC */
 #define PIC_COMMAND PIC1
 #define PIC1_DATA (PIC1+1)    /* master data */
+#define PIC1_COMMAND    PIC1
 #define PIC2_COMMAND PIC2
 #define PIC2_DATA (PIC2+1)    /* slave data */
 
