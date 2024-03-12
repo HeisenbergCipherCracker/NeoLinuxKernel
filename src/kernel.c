@@ -103,7 +103,7 @@ void kmain(unsigned long magic, unsigned long addr) {
     idt_init();
     console_init(COLOR_WHITE, COLOR_BLACK);
     vga_disable_cursor();
-    printf("Welcome to SimpleOS!\n");
+    printf("Welcome to NeoLinux!\n");
     printf("Getting Memory Map... ");
     mboot_info = (MULTIBOOT_INFO *)addr;
     if (get_kernel_memory_map(&g_kmap, mboot_info) < 0) {
