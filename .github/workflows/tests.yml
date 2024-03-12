@@ -13,9 +13,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install make
-      run: sudo apt update && sudo apt install make && sudo apt install make && sudo apt install grub2-common
+    - name: Install apt dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y make nasm grub2-common
+        # Add any other apt dependencies you need here
 
     - name: Build
       run: make
-
