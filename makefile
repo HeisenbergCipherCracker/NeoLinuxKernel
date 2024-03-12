@@ -23,7 +23,7 @@ DEFINES=
 
 # qemu
 QEMU= qemu-system-i386
-QEMU_FLAGS=  -boot d -cdrom out/SimpleOS.iso -drive file=fat32.img,format=raw
+QEMU_FLAGS=  -boot d -cdrom out/Neolinux.iso -drive file=fat32.img,format=raw
 
 # assembler flags
 ASM_FLAGS = -f elf32
@@ -33,10 +33,10 @@ CC_FLAGS = $(INCLUDE) $(DEFINES) -m32 -std=gnu99 -ffreestanding -Wall -Wextra
 LD_FLAGS = -m elf_i386 -T $(CONFIG)/linker.ld -nostdlib --allow-multiple-definition
 
 # target file to create in linking
-TARGET=$(OUT)/SimpleOS.bin
+TARGET=$(OUT)/Neolinux.bin
 
 # iso file target to create
-TARGET_ISO=$(OUT)/SimpleOS.iso
+TARGET_ISO=$(OUT)/Neolinux.iso
 ISO_DIR=$(OUT)/isodir
 
 OBJECTS=$(ASM_OBJ)/entry.o $(ASM_OBJ)/load_gdt.o\
