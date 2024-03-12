@@ -1,4 +1,6 @@
 // kernel.c
+#include "arch/x86/drivers/drivers.h"
+
 void kmain() {
     const char* msg = "Hello, kernel world!";
     // VGA text mode buffer starts at address 0xB8000

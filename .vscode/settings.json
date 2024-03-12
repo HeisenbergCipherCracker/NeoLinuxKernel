@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "drivers.h": "c",
+        "ncurses.h": "c",
+        "ctype.h": "c"
+    }
+}
