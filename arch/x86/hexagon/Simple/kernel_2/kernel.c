@@ -144,10 +144,10 @@ void kernel_entry()
     assign g_fore_color & g_back_color to color values
     g_fore_color = BRIGHT_RED;
   */
-  print_string("Hello World!");
+  print_string("Hello, Neo linux!");
   print_new_line();
   print_int(123456789);
   print_new_line();
-  print_string("Goodbye World!");
+  print_string("Goodbye, Neo linux!");
 
 }
