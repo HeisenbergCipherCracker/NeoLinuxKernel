@@ -1,16 +1,18 @@
-# Makefile
+TARGET = kernel
+CC = i686-elf-gcc
+LD = i686-elf-ld
 
-boot.bin: boot.asm
-    nasm -f bin boot.asm -o boot.bin
+CFLAGS = -std=c11 -ffreestanding -nostdlib -m32
+LDFLAGS = -T linker.ld -melf_i386
 
-kernel_entry.bin: kernel_entry.asm
-    nasm -f bin kernel_entry.asm -o kernel_entry.bin
+SRCS = kernel.c
+OBJS = $(SRCS:.c=.o)
 
-kernel.bin: linker.ld kernel_entry.bin
-    ld -T linker.ld -o kernel.bin kernel_entry.bin
+$(TARGET).bin: $(OBJS)
+    $(LD) $(LDFLAGS) -o $@ $(OBJS)
 
-os_image.img: boot.bin kernel.bin
-    cat boot.bin kernel.bin > os_image.img
+%.o: %.c
+    $(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-    rm -f boot.bin kernel_entry.bin kernel.bin os_image.img
+    rm -f $(OBJS) $(TARGET).bin
