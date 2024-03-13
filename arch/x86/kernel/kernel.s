@@ -1,3 +1,7 @@
+/*
+*Neo Linux: A cutting-edge kernel for
+*next-generation computing, released under the GPL 3.0 license. READ LICENSE file for more information
+*/
 	.section	__TEXT,__text,regular,pure_instructions
 	.build_version macos, 14, 0	sdk_version 14, 2
 	.globl	_vga_entry                      ; -- Begin function vga_entry

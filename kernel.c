@@ -1,3 +1,7 @@
+/*
+*Neo Linux: A cutting-edge kernel for
+*next-generation computing, released under the GPL 3.0 license. READ LICENSE file for more information
+*/
 void kmain() {
     const char* msg = "Hello, kernel world!";
     // VGA text mode buffer starts at address 0xB8000

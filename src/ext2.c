@@ -1,4 +1,8 @@
 /*
+*Neo Linux: A cutting-edge kernel for
+*next-generation computing, released under the GPL 3.0 license. READ LICENSE file for more information
+*/
+/*
 	Ext2 Filesystem driver
 	Note that this driver only supports a 8MB disk with 1 group of 8192 1KB blocks.
 */

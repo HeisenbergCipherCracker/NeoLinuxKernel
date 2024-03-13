@@ -1,3 +1,7 @@
+/*
+*Neo Linux: A cutting-edge kernel for
+*next-generation computing, released under the GPL 3.0 license. READ LICENSE file for more information
+*/
 #ifndef EXT2_H
 #define EXT2_H
 #include "types.h"
