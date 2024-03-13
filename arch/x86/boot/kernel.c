@@ -1,4 +1,7 @@
-
+/*
+*Neo Linux: A cutting-edge kernel for
+*next-generation computing, released under the GPL 3.0 license. READ LICENSE file for more information
+*/
 #if defined(__linux__)
 #error "You are not using a cross-compiler, you will most certainly run into trouble"
 #endif

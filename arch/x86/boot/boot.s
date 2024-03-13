@@ -1,4 +1,8 @@
 /* Declare constants for the multiboot header. */
+/*
+*Neo Linux: A cutting-edge kernel for
+*next-generation computing, released under the GPL 3.0 license. READ LICENSE file for more information
+*/
 .set ALIGN,    1<<0             /* align loaded modules on page boundaries */
 .set MEMINFO,  1<<1             /* provide memory map */
 .set FLAGS,    ALIGN | MEMINFO  /* this is the Multiboot 'flag' field */
