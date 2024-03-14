@@ -80,4 +80,4 @@ void free_frame(struct page *page)
     free_frames[top_of_stack] = page->frame;
     page->frame = 0x0;
     allocated_frames--;
-}s
+}s;
