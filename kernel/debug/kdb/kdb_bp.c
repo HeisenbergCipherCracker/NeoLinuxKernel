@@ -28,7 +28,6 @@ static void kdb_setsinglestep(struct pt_regs *regs)
 {
 	KDB_STATE_SET(DOING_SS);
 }
-
 static char *kdb_rwtypes[] = {
 	"Instruction(i)",
 	"Instruction(Register)",
