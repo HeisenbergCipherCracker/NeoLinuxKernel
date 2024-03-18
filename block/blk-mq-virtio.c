@@ -23,7 +23,7 @@
 void blk_mq_virtio_map_queues(struct blk_mq_queue_map *qmap,
 		struct virtio_device *vdev, int first_vec)
 {
-	const struct cpumask *mask;
+	static const struct cpumask *mask;
 	unsigned int queue, cpu;
 
 	if (!vdev->config->get_vq_affinity)
