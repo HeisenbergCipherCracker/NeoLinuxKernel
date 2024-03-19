@@ -1,225 +1,136 @@
-# assembler
-ASM = /usr/bin/nasm
-# compiler
-CC = /usr/bin/gcc
-# linker
-LD = /usr/bin/ld
-# grub iso creator
-GRUB = /usr/bin/grub-mkrescue
-# sources
-SRC = src
-ASM_SRC = $(SRC)/asm
-# objects
-OBJ = obj
-ASM_OBJ = $(OBJ)/asm
-CONFIG = ./config
-OUT = out
-INC = ./include
-INCLUDE=-I$(INC)
+# This is the top leve Makefile of AquilaOS
+#
+# Targets:
+#
+#  build-kernel     - build kernel image in kernel/{ARCH}/kernel-{VERSION}.{ARCH}
+#  install-kernel   - install kernel image into {DESTDIR}/boot/kernel
+#  clean-kernel     - clean kernel source tree
+#
+#  build-system     - build system components
+#  install-system   - install system components into {DESTDIR}/
+#  clean-system	    - clean system source tree
+#
+#  build-initrd     - build ramdisk image in initrd/initrd.img
+#  install-initrd   - install ramdisk image into {DESTDIR}/boot/initrd.img
+#  clean-initrd     - clean ramdisk source tree
+#
+#  build-all        - build everything
+#  install-all      - install everything
+#  clean-all        - clean everything
+#
 
-MKDIR= mkdir -p
-CP = cp -f
-DEFINES=
+export
 
-# qemu
-QEMU= qemu-system-i386
-QEMU_FLAGS=  -boot d -cdrom out/Neolinux.iso -drive file=fat32.img,format=raw
+ifeq ($(SRCDIR),)
+SRCDIR := $(TRAVIS_BUILD_DIR)
+endif
 
-# assembler flags
-ASM_FLAGS = -f elf32
-# compiler flags
-CC_FLAGS = $(INCLUDE) $(DEFINES) -m32 -std=gnu99 -ffreestanding -Wall -Wextra 
-# linker flags, for linker add linker.ld file too
-LD_FLAGS = -m elf_i386 -T $(CONFIG)/linker.ld -nostdlib --allow-multiple-definition
+ifeq ($(SRCDIR),)
+SRCDIR != pwd
+endif
 
-# target file to create in linking
-TARGET=$(OUT)/Neolinux.bin
+ifeq ($(BUILDDIR),)
+BUILDDIR != pwd
+endif
 
-# iso file target to create
-TARGET_ISO=$(OUT)/Neolinux.iso
-ISO_DIR=$(OUT)/isodir
+ifeq ($(CONFIG),)
+CONFIG := i386-pc
+endif
 
-OBJECTS=$(ASM_OBJ)/entry.o $(ASM_OBJ)/load_gdt.o\
-		$(ASM_OBJ)/load_idt.o $(ASM_OBJ)/exception.o $(ASM_OBJ)/irq.o $(ASM_OBJ)/load_tss.o $(ASM_OBJ)/bios32_call.o\
-		$(OBJ)/io_ports.o $(OBJ)/vga.o\
-		$(OBJ)/string.o $(OBJ)/console.o\
-		$(OBJ)/gdt.o $(OBJ)/idt.o $(OBJ)/isr.o $(OBJ)/8259_pic.o\
-		$(OBJ)/keyboard.o $(OBJ)/mouse.o\
-		$(OBJ)/kernel.o\
-		$(OBJ)/gui.o\
-		$(OBJ)/ext2.o\
-		$(OBJ)/ide.o\
-		$(OBJ)/tss.o\
-		$(OBJ)/kheap.o\
-		$(OBJ)/pmm.o\
-		$(OBJ)/bios32.o\
-		$(OBJ)/vesa.o\
-		$(OBJ)/bitmap.o\
-		$(OBJ)/panic.o\
-		$(OBJ)/fat32.o\
+include $(SRCDIR)/configs/$(CONFIG).mk
 
+ARCH=i386
+VERSION=0.0.1
+CP=cp
+BASH=bash
+MKDIR=mkdir -p
+ECHO=echo
+STRIP=/opt/aquila/bin/i686-aquila-strip
+LN=ln
 
+MAKEFLAGS += --no-print-directory
 
-all: $(OBJECTS)
-	@printf "[ linking... ]\n"
-	$(LD) $(LD_FLAGS) -o $(TARGET) $(OBJECTS)
-	grub-file --is-x86-multiboot $(TARGET)
-	@printf "\n"
-	@printf "[ building ISO... ]\n"
-	$(MKDIR) $(ISO_DIR)/boot/grub
-	$(CP) $(TARGET) $(ISO_DIR)/boot/
-	$(CP) $(CONFIG)/grub.cfg $(ISO_DIR)/boot/grub/
-	$(GRUB) -o $(TARGET_ISO) $(ISO_DIR)
-	rm -f $(TARGET)
+GRUB_MKRESCUE = $(shell command -v grub2-mkrescue 2> /dev/null)
+ifeq ($(GRUB_MKRESCUE),)
+GRUB_MKRESCUE = grub-mkrescue
+endif
 
-$(ASM_OBJ)/entry.o : $(ASM_SRC)/entry.asm
-	@printf "[ $(ASM_SRC)/entry.asm ]\n"
-	$(ASM) $(ASM_FLAGS) $(ASM_SRC)/entry.asm -o $(ASM_OBJ)/entry.o
-	@printf "\n"
+DESTDIR = $(SRCDIR)/sysroot
 
-$(ASM_OBJ)/load_gdt.o : $(ASM_SRC)/load_gdt.asm
-	@printf "[ $(ASM_SRC)/load_gdt.asm ]\n"
-	$(ASM) $(ASM_FLAGS) $(ASM_SRC)/load_gdt.asm -o $(ASM_OBJ)/load_gdt.o
-	@printf "\n"
+.PHONY: build-all install-all clean-all
+build-all: \
+	build-kernel \
+	build-system \
+	build-initrd
 
-$(ASM_OBJ)/load_idt.o : $(ASM_SRC)/load_idt.asm
-	@printf "[ $(ASM_SRC)/load_idt.asm ]\n"
-	$(ASM) $(ASM_FLAGS) $(ASM_SRC)/load_idt.asm -o $(ASM_OBJ)/load_idt.o
-	@printf "\n"
+install-all: \
+	install-kernel \
+	install-system \
+	install-initrd
 
-$(ASM_OBJ)/exception.o : $(ASM_SRC)/exception.asm
-	@printf "[ $(ASM_SRC)/exception.asm ]\n"
-	$(ASM) $(ASM_FLAGS) $(ASM_SRC)/exception.asm -o $(ASM_OBJ)/exception.o
-	@printf "\n"
+clean-all: \
+	clean-kernel \
+	clean-system \
+	clean-initrd
 
-$(ASM_OBJ)/irq.o : $(ASM_SRC)/irq.asm
-	@printf "[ $(ASM_SRC)/irq.asm ]\n"
-	$(ASM) $(ASM_FLAGS) $(ASM_SRC)/irq.asm -o $(ASM_OBJ)/irq.o
-	@printf "\n"
+#
+# kernel targets
+#
 
-$(ASM_OBJ)/load_tss.o : $(ASM_SRC)/load_tss.asm
-	@printf "[ $(ASM_SRC)/irq.asm ]\n"
-	$(ASM) $(ASM_FLAGS) $(ASM_SRC)/load_tss.asm -o $(ASM_OBJ)/load_tss.o
-	@printf "\n"
+.PHONY: build-kernel clean-kernel install-kernel
+build-kernel:
+	$(MAKE) -C $(SRCDIR)/kernel/
 
-$(ASM_OBJ)/bios32_call.o : $(ASM_SRC)/bios32_call.asm
-	@printf "[ $(ASM_SRC)/bios32_call.asm ]\n"
-	$(ASM) $(ASM_FLAGS) $(ASM_SRC)/bios32_call.asm -o $(ASM_OBJ)/bios32_call.o
-	@printf "\n"
+install-kernel:
+	$(MAKE) -C $(SRCDIR)/kernel/ install
 
-$(OBJ)/io_ports.o : $(SRC)/io_ports.c
-	@printf "[ $(SRC)/io_ports.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/io_ports.c -o $(OBJ)/io_ports.o
-	@printf "\n"
+clean-kernel:
+	$(MAKE) -C $(SRCDIR)/kernel/ clean
 
-$(OBJ)/vga.o : $(SRC)/vga.c
-	@printf "[ $(SRC)/vga.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/vga.c -o $(OBJ)/vga.o
-	@printf "\n"
+#
+# initrd targets
+#
 
-$(OBJ)/string.o : $(SRC)/string.c
-	@printf "[ $(SRC)/string.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/string.c -o $(OBJ)/string.o
-	@printf "\n"
+.PHONY: build-initrd install-initrd clean-initrd
+build-initrd: build-system
+	$(MAKE) -C $(SRCDIR)/initrd/
 
-$(OBJ)/console.o : $(SRC)/console.c
-	@printf "[ $(SRC)/console.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/console.c -o $(OBJ)/console.o
-	@printf "\n"
+install-initrd: build-initrd
+	$(MAKE) -C $(SRCDIR)/initrd/ install
 
-$(OBJ)/gdt.o : $(SRC)/gdt.c
-	@printf "[ $(SRC)/gdt.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/gdt.c -o $(OBJ)/gdt.o
-	@printf "\n"
+clean-initrd:
+	$(MAKE) -C $(SRCDIR)/initrd/ clean
 
-$(OBJ)/idt.o : $(SRC)/idt.c
-	@printf "[ $(SRC)/idt.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/idt.c -o $(OBJ)/idt.o
-	@printf "\n"
+#
+# system targets
+#
 
-$(OBJ)/isr.o : $(SRC)/isr.c
-	@printf "[ $(SRC)/isr.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/isr.c -o $(OBJ)/isr.o
-	@printf "\n"
+.PHONY: build-system install-system clean-system
+build-system: 
+	$(MAKE) -C $(SRCDIR)/system/
 
-$(OBJ)/8259_pic.o : $(SRC)/8259_pic.c
-	@printf "[ $(SRC)/8259_pic.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/8259_pic.c -o $(OBJ)/8259_pic.o
-	@printf "\n"
+install-system: build-system
+	$(MAKE) -C $(SRCDIR)/system/ install
 
-$(OBJ)/keyboard.o : $(SRC)/keyboard.c
-	@printf "[ $(SRC)/keyboard.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/keyboard.c -o $(OBJ)/keyboard.o
-	@printf "\n"
+clean-system:
+	$(MAKE) -C $(SRCDIR)/system/ clean
 
-$(OBJ)/mouse.o : $(SRC)/mouse.c
-	@printf "[ $(SRC)/mouse.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/mouse.c -o $(OBJ)/mouse.o
-	@printf "\n"
+.PHONY: iso/kernel.elf.gz
+iso/kernel.elf.gz: build-kernel
+	$(BASH) -c "if [[ ! -e iso ]]; then mkdir iso; fi"
+	$(CP) kernel/arch/$(ARCH)/kernel-$(VERSION).$(ARCH) iso/kernel.elf
+	gzip -f iso/kernel.elf
 
-$(OBJ)/kernel.o : $(SRC)/kernel.c
-	@printf "[ $(SRC)/kernel.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/kernel.c -o $(OBJ)/kernel.o
-	@printf "\n"
+.PHONY: iso/initrd.img.gz
+iso/initrd.img.gz: build-initrd
+	$(BASH) -c "if [[ ! -e iso ]]; then mkdir iso; fi"
+	cp initrd/initrd.img iso/initrd.img
+	gzip -f iso/initrd.img
 
-$(OBJ)/gui.o : $(SRC)/gui.c
-	@printf "[ $(SRC)/gui.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/gui.c -o $(OBJ)/gui.o
-	@printf "\n"
+.PHONY: try
+try: aquila.iso
+	qemu-kvm -cdrom aquila.iso -hda hd.img -serial stdio -m 2G -d cpu_reset -no-reboot -boot d
 
-$(OBJ)/ext2.o : $(SRC)/ext2.c
-	@printf "[ $(SRC)/ext2.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/ext2.c -o $(OBJ)/ext2.o
-	@printf "\n"
-
-$(OBJ)/ide.o : $(SRC)/ide.c
-	@printf "[ $(SRC)/ide.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/ide.c -o $(OBJ)/ide.o
-	@printf "\n"
-
-$(OBJ)/tss.o : $(SRC)/tss.c
-	@printf "[ $(SRC)/tss.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/tss.c -o $(OBJ)/tss.o
-	@printf "\n"
-
-$(OBJ)/kheap.o : $(SRC)/kheap.c
-	@printf "[ $(SRC)/kheap.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/kheap.c -o $(OBJ)/kheap.o
-	@printf "\n"
-
-$(OBJ)/pmm.o : $(SRC)/pmm.c
-	@printf "[ $(SRC)/pmm.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/pmm.c -o $(OBJ)/pmm.o
-	@printf "\n"
-
-$(OBJ)/bios32.o : $(SRC)/bios32.c
-	@printf "[ $(SRC)/bios32.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/bios32.c -o $(OBJ)/bios32.o
-	@printf "\n"
-
-$(OBJ)/vesa.o : $(SRC)/vesa.c
-	@printf "[ $(SRC)/vesa.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/vesa.c -o $(OBJ)/vesa.o
-	@printf "\n"
-
-$(OBJ)/bitmap.o : $(SRC)/bitmap.c
-	@printf "[ $(SRC)/bitmap.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/bitmap.c -o $(OBJ)/bitmap.o
-	@printf "\n"
-
-$(OBJ)/panic.o : $(SRC)/panic.c
-	@printf "[ $(SRC)/panic.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/panic.c -o $(OBJ)/panic.o
-	@printf "\n"
-
-$(OBJ)/fat32.o : $(SRC)/fat32.c
-	@printf "[ $(SRC)/fat32.c ]\n"
-	$(CC) $(CC_FLAGS) -c $(SRC)/fat32.c -o $(OBJ)/fat32.o
-	@printf "\n"
-
-run:
-	$(QEMU) $(QEMU_FLAGS)
-
-clean:
-	rm -f $(OBJ)/*.o
-	rm -f $(ASM_OBJ)/*
+aquila.iso: iso/kernel.elf.gz iso/initrd.img.gz
+	$(GRUB_MKRESCUE) -d /usr/lib/grub/i386-pc/ -o aquila.iso iso/
+#	#$(GRUB_MKRESCUE) -d /usr/lib/grub/i386-pc/ --install-modules="multiboot normal videoinfo videotest gzio" --locales="en@quot" --fonts=ascii -o aquila.iso iso/
