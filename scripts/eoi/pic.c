@@ -8,18 +8,15 @@
 
 // Define the End-of-Interrupt command code
 #define PIC_EOI 0x20
+
+#define ICW1_INIT 0x10       /* Initialization - required! */
+#define ICW1_ICW4 0x01       /* ICW4 (not) needed */
 #define ICW4_8086 0x01    /* 8086/88 (MCS-80/85) mode */
 
 
 // Define port addresses and commands for PICs
 #define PIC1 0x20 // IO base address for master PIC
 #define PIC2 0xA0 // IO base address for slave PIC
-#define ICW1_INIT 0x10       /* Initialization - required! */
-#define ICW1_ICW4 0x01       /* ICW4 (not) needed */
-#define PIC1_COMMAND PIC1
-#define PIC1_DATA (PIC1 + 1)
-#define PIC2_COMMAND PIC2
-#define PIC2_DATA (PIC2 + 1)
 
 // Function prototypes for low-level I/O operations
 void outb(uint16_t port, uint8_t value);
@@ -60,7 +57,7 @@ uint8_t inb(uint16_t port) {
  * This is achieved by sending a dummy read to an unused I/O port.
  */
 void io_wait() {
-    asm volatile ("outb %%al, $0x80" : : "a"(0));
+    asm volatile ("outb %%al, $0x80" : : : "eax");
 }
 
 /*
@@ -72,8 +69,8 @@ void io_wait() {
  */
 void PIC_sendEOI(uint8_t irq) {
     if (irq >= 8)
-        outb(PIC2_COMMAND, PIC_EOI); // Send EOI to slave PIC if necessary
-    outb(PIC1_COMMAND, PIC_EOI); // Send EOI to master PIC
+        outb(PIC2, PIC_EOI); // Send EOI to slave PIC if necessary
+    outb(PIC1, PIC_EOI); // Send EOI to master PIC
 }
 
 /*
@@ -92,9 +89,9 @@ void PIC_remap(int offset1, int offset2) {
     a2 = inb(PIC2_DATA);
  
     // Start initialization sequence
-    outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
+    outb(PIC1, ICW1_INIT | ICW1_ICW4);
     io_wait();
-    outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
+    outb(PIC2, ICW1_INIT | ICW1_ICW4);
     io_wait();
  
     // Set vector offsets
